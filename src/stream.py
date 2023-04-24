@@ -1,31 +1,27 @@
 # import lib
+import os
 import requests
-from flask import Flask, render_template, Response, request
-from wsgiref.simple_server import make_server
+from flask import Flask, send_from_directory, render_template, Response, request
+from werkzeug.serving import make_server
 import cv2
 
 # import local files
 import constants
-from shared_queues import FrameQueue, StreamConnectionQueue
+from shared_vars import FrameQueue
 
 App = Flask(__name__)
-Frame = None
 
 @App.route('/')
 def index():
     return render_template('index.html')
 
+@App.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(App.root_path, 'templates'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 @App.route('/video_feed')
 def video_feed():
-    # client connected to stream
-    StreamConnectionQueue.put(None)
-    def stream_handler():
-        try:
-            get_frame_from_queue()
-        # client disconnected
-        except (IOError, WebSocketError):
-            StreamConnectionQueue.get()
-    return Response(stream_handler(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(get_frame_from_queue(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @App.route('/shutdown', methods=['POST'])
 def shutdown():
@@ -36,17 +32,19 @@ def shutdown():
     return 'Server is shutting down'
 
 def get_frame_from_queue():
+    StreamFrame = b'0'
     while True:
         try:
-            Frame = FrameQueue.get(timeout = constants.TIMEOUT)
-            Frame = cv2.imencode('.jpg', Frame)[1].tobytes()
+            StreamFrame = FrameQueue.get(timeout = constants.TIMEOUT)
+            StreamFrame = cv2.imencode('.jpg', StreamFrame)[1].tobytes()
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + StreamFrame + b'\r\n')
         except:
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + StreamFrame + b'\r\n')
 
 def main():
+    # App.run(debug = True, host = constants.SERVER, port = constants.PORT)
     Server = make_server(constants.SERVER, constants.PORT, App)
     Server.serve_forever()
 
