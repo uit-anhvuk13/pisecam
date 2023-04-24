@@ -19,10 +19,6 @@ if __name__ == '__main__':
     camera_thread.start()
     stream_thread.start()
 
-    while True:
-        input()
-        print(StreamConnectionQueue.qsize())
-
     # wait for signal ctrl+c to continue
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()

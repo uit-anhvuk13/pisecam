@@ -1,8 +1,7 @@
 # import lib
 import requests
 from flask import Flask, render_template, Response, request
-from flask_socketio import SocketIO, emit
-from gevent.pywsgi import WSGIServer
+from wsgiref.simple_server import make_server
 import cv2
 
 # import local files
@@ -10,23 +9,7 @@ import constants
 from shared_queues import FrameQueue, StreamConnectionQueue
 
 App = Flask(__name__)
-App.config['SECRET_KEY'] = constants.SECRET_KEY
-SocketIo = SocketIO(App)
 Frame = None
-
-@SocketIo.on('connect')
-def handle_connect():
-    StreamConnectionQueue.put(request.remote_addr)
-    global user_count
-    user_count += 1
-    emit('user_count', {'count': user_count}, broadcast=True)
-
-@SocketIo.on('disconnect')
-def handle_disconnect():
-    StreamConnectionQueue.get(request.remote_addr)
-    global user_count
-    user_count -= 1
-    emit('user_count', {'count': user_count}, broadcast=True)
 
 @App.route('/')
 def index():
@@ -52,12 +35,6 @@ def shutdown():
     shutdown_func()
     return 'Server is shutting down'
 
-@App.before_request
-def check_user():
-    if request.endpoint == 'logout':
-        # Handle user leaving the page or closing the browser window
-        print('User has left the page')
-
 def get_frame_from_queue():
     while True:
         try:
@@ -70,9 +47,8 @@ def get_frame_from_queue():
                    b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
 
 def main():
-    HttpServer = WSGIServer((constants.SERVER, constants.PORT), App)
-    SocketIoServer = SocketIOServer(HttpServer, host=constants.SERVER, port=constants.PORT)
-    SocketIoServer.serve_forever()
+    Server = make_server(constants.SERVER, constants.PORT, App)
+    Server.serve_forever()
 
 def terminate():
     requests.post(f'http://{constants.SERVER}:{constants.PORT}/shutdown')
