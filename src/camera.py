@@ -28,12 +28,13 @@ def generate_frames(Camera):
             FrameToScoreQueue.put(Frame)
             LastScoringTime = CurrentTime
         
-        if IsDetected.event.is_set():
+        global Out
+        if IsDetected.is_set():
             if Out == None:
                 Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
-                Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
+                Filepath = f'{os.path.join(RecordPath, Filename)}.mp4'
                 print(Filepath)
-                Fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                Fourcc = cv2.VideoWriter_fourcc(*'MP4V')
                 Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
             global StopRecordTime
             StopRecordTime = CurrentTime + RecordingTimeGap    

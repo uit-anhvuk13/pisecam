@@ -16,9 +16,9 @@ def detect_human(Frame, Hog):
     Rects, _ = Hog.detectMultiScale(Gray, winStride = (8, 8), padding = (32, 32), scale=1.05)
 
     if len(Rects) > 0:
-        IsDetected.event.set()
+        IsDetected.set()
     else:
-        IsDetected.event.clear()
+        IsDetected.clear()
 
 def main():
     Hog = cv2.HOGDescriptor()
