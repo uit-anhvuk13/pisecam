@@ -32,14 +32,15 @@ def generate_frames(Camera):
         if IsDetected.is_set():
             if Out == None:
                 Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
-                Filepath = f'{os.path.join(RecordPath, Filename)}.mp4'
+                Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
                 print(Filepath)
-                Fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+                Fourcc = cv2.VideoWriter_fourcc(*'XVID')
                 Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
             global StopRecordTime
             StopRecordTime = CurrentTime + RecordingTimeGap    
             Out.write(Frame)      
         elif Out != None:
+            print(f'{StopRecordTime} {CurrentTime}')
             if CurrentTime <= StopRecordTime:
                 Out.write(Frame)
             else:

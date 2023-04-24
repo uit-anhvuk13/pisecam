@@ -1,9 +1,11 @@
 # import lib
+import os
 import time
 import signal
 from threading import Thread
 
 # import local files
+import constants
 from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue
 from camera import main as camera_main, terminate as camera_terminate
 from detector import main as detector_main, terminate as detector_terminate
