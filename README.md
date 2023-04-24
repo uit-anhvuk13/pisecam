@@ -1,5 +1,5 @@
 # raspi sec cam
-- simple app that streams live and records when detecting human
+- simple app that streams live and records while detecting human
 
 ## hardware
 - raspberry pi 2/3/4
@@ -21,18 +21,3 @@ pip install flask
 ```sh
 python3 src/app.js
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- detection
