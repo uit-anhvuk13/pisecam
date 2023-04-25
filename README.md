@@ -11,13 +11,15 @@
 - install required libraries:
 ```sh
 sudo apt update
-sudo apt install -y python-pip
 sudo apt install -y python-opencv
-pip install flask
+sudo apt install -y python-pip
+pip install -r requirements.txt
 ```
 
 ## usage
 - modify desired args in src/constants.py
 ```sh
-python3 src/app.js
+git clone https://github.com/uit-anhvuk13/pisecam.git
+cd pisecam/src
+python3 app.js
 ```
