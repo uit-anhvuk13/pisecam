@@ -3,7 +3,7 @@ import cv2
 
 # import local files
 import constants
-from shared_vars import CameraCtrlQueue, FrameToScoreQueue
+from shared_vars import CameraCtrlQueue, FrameToScoreQueue, absolute_equal
 
 Timeout = constants.TIMEOUT + constants.SEC_GAP_BETWEEN_SCORING
 Hog = None
@@ -27,7 +27,7 @@ def main():
     while True:
         try:
             Msg = FrameToScoreQueue.get(timeout = Timeout)
-            if Msg == b'$EXIT':
+            if absolute_equal(Msg, b'$EXIT'):
                 break
             detect_human(Msg)
         except:
