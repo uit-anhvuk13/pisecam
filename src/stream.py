@@ -23,30 +23,24 @@ def favicon():
 def video_feed():
     return Response(get_frame_from_queue(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@App.route('/shutdown', methods=['POST'])
-def shutdown():
-    shutdown_func = request.environ.get('werkzeug.server.shutdown')
-    if shutdown_func is None:
-        raise RuntimeError('Not running with the Werkzeug server')
-    shutdown_func()
-    return 'Server is shutting down'
-
 def get_frame_from_queue():
-    StreamFrame = b'0'
+    Frame = b'0'
     while True:
         try:
-            StreamFrame = FrameQueue.get(timeout = constants.TIMEOUT)
-            StreamFrame = cv2.imencode('.jpg', StreamFrame)[1].tobytes()
+            Frame = FrameQueue.get(timeout = constants.TIMEOUT)
+            Frame = cv2.imencode('.jpg', Frame)[1].tobytes()
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + StreamFrame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
         except:
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + StreamFrame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
 
 def main():
+    global App
     # App.run(debug = True, host = constants.SERVER, port = constants.PORT)
     Server = make_server(constants.SERVER, constants.PORT, App)
     Server.serve_forever()
 
 def terminate():
-    requests.post(f'http://{constants.SERVER}:{constants.PORT}/shutdown')
+    # currently not find a way to shutdown flask app running from a thread
+    pass

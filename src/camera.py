@@ -8,68 +8,79 @@ Now = datetime.now
 import constants
 from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue, IsDetected
 
+# global vars
+Camera = None
 RecordPath = os.path.join(os.getcwd(), constants.RECORD_DIR)
 Out = None
 StopRecordTime = None
 
 ScoringTimeGap = timedelta(seconds = constants.SEC_GAP_BETWEEN_SCORING)
 RecordingTimeGap = timedelta(seconds = constants.SEC_TO_END_RECORD_WHEN_NO_DETECTION)
-LastScoringTime = Now()
+CurrentTime = Now()
+LastScoringTime = CurrentTime
 
-def generate_frames(Camera):
+def generate_frames():
+    global Camera
     Ok, Frame = Camera.read()
     if Ok:
-        CurrentTime = Now()
-        
+        global FrameQueue, CurrentTime, LastScoringTime, ScoringTimeGap, Out 
         FrameQueue.put(Frame)
-        
-        global LastScoringTime
         if CurrentTime > LastScoringTime + ScoringTimeGap:
+            global FrameToScoreQueue
             FrameToScoreQueue.put(Frame)
             LastScoringTime = CurrentTime
-        
-        global Out
-        if IsDetected.is_set():
-            if Out == None:
-                Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
-                Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
-                print(Filepath)
-                Fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
-            global StopRecordTime
-            StopRecordTime = CurrentTime + RecordingTimeGap    
-            Out.write(Frame)      
-        elif Out != None:
-            print(f'{StopRecordTime} {CurrentTime}')
-            if CurrentTime <= StopRecordTime:
-                Out.write(Frame)
-            else:
-                Out.release()
-                Out = None
-                print('{currentTime} - 1 file recorded')
+        if Out != None:
+            Out.write(Frame)
 
-def message_handler(Msg, Camera):
-    if Msg == 'gen_frame':
-        generate_frames(Camera)
+def handle_human_detection():
+    global Out, StopRecordTime, RecordingTimeGap
+    if Out == None:
+        global CurrentTime, RecordPath
+        Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
+        Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
+        print(Filepath)
+        Fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
+        print(f'camera_thread writing to {Filepath}')
+    StopRecordTime = CurrentTime + RecordingTimeGap    
+
+def handle_no_human_detection():
+    global Out
+    if Out != None and CurrentTime > StopRecordTime:
+        Out.release()
+        Out = None
+        print('{CurrentTime} - 1 file recorded')
+
+def message_handler(Msg):
+    global CurrentTime
+    CurrentTime = Now()
+    if Msg == b'$GEN_FRAME':
+        generate_frames()
+    elif Msg == b'$HUMAN_DETECTED':
+        handle_human_detection()
+    elif Msg == b'$HUMAN_UNDETECTED':
+        handle_no_human_detection()
 
 def main():
+    global Camera, CameraCtrlQueue
     Camera = cv2.VideoCapture(0)
-
     # Set the resolution to 1080p
     Camera.set(cv2.CAP_PROP_FRAME_WIDTH, constants.FRAME_WIDTH)
     Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, constants.FRAME_HEIGHT)
-
     while True:
         try:
             Msg = CameraCtrlQueue.get(timeout = constants.TIMEOUT)
-            if isinstance(Msg, str) and Msg == '$EXIT':
+            if Msg == '$EXIT':
                 if Out != None:
                     Out.release()
                     Out = None
+                    print('{CurrentTime} - 1 file recorded')
                 break
-            message_handler(Msg, Camera)
+            message_handler(Msg)
         except:
-            message_handler('gen_frame', Camera)
+            pass
+        message_handler(b'$GEN_FRAME')
 
 def terminate():
-    CameraCtrlQueue.put('$EXIT')
+    global CameraCtrlQueue
+    CameraCtrlQueue.put(b'$EXIT')
