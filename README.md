@@ -21,5 +21,5 @@ pip install -r requirements.txt
 ```sh
 git clone https://github.com/uit-anhvuk13/pisecam.git
 cd pisecam
-python3 src/app.js
+python3 src/app.py
 ```
