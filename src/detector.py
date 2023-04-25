@@ -1,5 +1,6 @@
 #import lib
 import cv2
+import time
 
 # import local files
 import constants
@@ -28,10 +29,14 @@ def main():
         try:
             Msg = FrameToScoreQueue.get(timeout = Timeout)
             if absolute_equal(Msg, b'$EXIT'):
-                break
+                print(f'detector_thread: exited')
+                return
+
             detect_human(Msg)
         except:
             pass
 
 def terminate():
+    FrameToScoreQueue.queue.clear()
     FrameToScoreQueue.put(b'$EXIT')
+    time.sleep(0.5)

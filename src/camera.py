@@ -1,12 +1,13 @@
 # import lib
 import os
+import time
 import cv2
 from datetime import datetime, timedelta
 Now = datetime.now
 
 # import local files
 import constants
-from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue, IsDetected
+from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue
 
 # global vars
 Camera = None
@@ -39,7 +40,7 @@ def handle_human_detection():
         Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
         Fourcc = cv2.VideoWriter_fourcc(*'XVID')
         Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
-        print(f'camera_thread writing to {Filepath}')
+        print(f'camera_thread: writing to {Filepath}')
     StopRecordTime = CurrentTime + RecordingTimeGap    
 
 def handle_no_human_detection():
@@ -47,7 +48,7 @@ def handle_no_human_detection():
     if Out != None and CurrentTime > StopRecordTime:
         Out.release()
         Out = None
-        print(f'{CurrentTime} - 1 file recorded')
+        print(f'camera_thread: {CurrentTime} video recorded')
 
 def message_handler(Msg):
     global CurrentTime
@@ -69,15 +70,19 @@ def main():
         try:
             Msg = CameraCtrlQueue.get(timeout = constants.TIMEOUT)
             if Msg == b'$EXIT':
+                global Out
                 if Out != None:
                     Out.release()
                     Out = None
-                    print(f'{CurrentTime} - video recorded')
-                break
+                    print(f'camera_thread: {CurrentTime} video recorded')
+                print(f'camera_thread: exited')
+                return
             message_handler(Msg)
         except:
             pass
         message_handler(b'$GEN_FRAME')
 
 def terminate():
+    CameraCtrlQueue.queue.clear()
     CameraCtrlQueue.put(b'$EXIT')
+    time.sleep(0.5)

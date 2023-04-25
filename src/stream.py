@@ -43,4 +43,5 @@ def main():
 
 def terminate():
     # currently not find a way to shutdown flask app running from a thread
-    pass
+    FrameQueue.queue.clear()
+    print(f'stream_thread: exited')

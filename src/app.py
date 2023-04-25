@@ -33,16 +33,10 @@ if __name__ == '__main__':
     # wait for signal ctrl+c to continue
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()
-    # send signal to teardown threads
+    # flush all queues and send signal to teardown threads
     camera_terminate()
     detector_terminate()
     stream_terminate()
-    # flush all queues
-    CameraCtrlQueue.queue.clear()
-    FrameToScoreQueue.queue.clear()
-    FrameQueue.queue.clear()
     print('wait for all queues to be flushed')
-    while not CameraCtrlQueue.empty() or not FrameToScoreQueue.empty() or not FrameQueue.empty():
-        pass
     print('app terminating...')
-    time.sleep(5)
+    time.sleep(0.5)
