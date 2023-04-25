@@ -20,6 +20,6 @@ pip install -r requirements.txt
 - modify desired args in src/constants.py
 ```sh
 git clone https://github.com/uit-anhvuk13/pisecam.git
-cd pisecam/src
-python3 app.js
+cd pisecam
+python3 src/app.js
 ```
