@@ -32,7 +32,6 @@ def generate_frames():
             Out.write(Frame)
 
 def handle_human_detection():
-    print(f'camera_thread: detect')
     global Out, StopRecordTime, RecordingTimeGap
     if Out == None:
         global CurrentTime, RecordPath
@@ -44,12 +43,11 @@ def handle_human_detection():
     StopRecordTime = CurrentTime + RecordingTimeGap    
 
 def handle_no_human_detection():
-    print(f'camera_thread: no detect')
     global Out, CurrentTime
     if Out != None and CurrentTime > StopRecordTime:
         Out.release()
         Out = None
-        print('{CurrentTime} - 1 file recorded')
+        print(f'{CurrentTime} - 1 file recorded')
 
 def message_handler(Msg):
     global CurrentTime
@@ -74,7 +72,7 @@ def main():
                 if Out != None:
                     Out.release()
                     Out = None
-                    print('{CurrentTime} - 1 file recorded')
+                    print(f'{CurrentTime} - video recorded')
                 break
             message_handler(Msg)
         except:
