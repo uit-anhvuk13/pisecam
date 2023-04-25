@@ -16,9 +16,9 @@ def detect_human(Frame):
     # detect human using HOG
     Rects, _ = Hog.detectMultiScale(Gray, winStride = (8, 8), padding = (32, 32), scale=1.05)
     if len(Rects) > 0:
-        CameraCtrlQueue.put('$HUMAN_DETECTED')
+        CameraCtrlQueue.put(b'$HUMAN_DETECTED')
     else:
-        CameraCtrlQueue.put('$HUMAN_UNDETECTED')
+        CameraCtrlQueue.put(b'$HUMAN_UNDETECTED')
 
 def main():
     global Hog, Timeout

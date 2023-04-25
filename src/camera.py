@@ -32,18 +32,19 @@ def generate_frames():
             Out.write(Frame)
 
 def handle_human_detection():
+    print(f'camera_thread: detect')
     global Out, StopRecordTime, RecordingTimeGap
     if Out == None:
         global CurrentTime, RecordPath
         Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
         Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
-        print(Filepath)
         Fourcc = cv2.VideoWriter_fourcc(*'XVID')
         Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
         print(f'camera_thread writing to {Filepath}')
     StopRecordTime = CurrentTime + RecordingTimeGap    
 
 def handle_no_human_detection():
+    print(f'camera_thread: no detect')
     global Out, CurrentTime
     if Out != None and CurrentTime > StopRecordTime:
         Out.release()
@@ -69,7 +70,7 @@ def main():
     while True:
         try:
             Msg = CameraCtrlQueue.get(timeout = constants.TIMEOUT)
-            if Msg == '$EXIT':
+            if Msg == b'$EXIT':
                 if Out != None:
                     Out.release()
                     Out = None
