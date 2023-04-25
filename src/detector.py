@@ -9,7 +9,7 @@ Timeout = constants.TIMEOUT + constants.SEC_GAP_BETWEEN_SCORING
 Hog = None
 
 def detect_human(Frame):
-    global Hog, CameraCtrlQueue
+    global Hog
     # resize the frame and convert it to grayscale
     ResizedFrame = cv2.resize(Frame, (640, 480))
     Gray = cv2.cvtColor(ResizedFrame, cv2.COLOR_BGR2GRAY)
@@ -21,7 +21,7 @@ def detect_human(Frame):
         CameraCtrlQueue.put('$HUMAN_UNDETECTED')
 
 def main():
-    global Hog, FrameToScoreQueue, Timeout
+    global Hog, Timeout
     Hog = cv2.HOGDescriptor()
     Hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
     while True:
@@ -34,5 +34,4 @@ def main():
             pass
 
 def terminate():
-    global FrameToScoreQueue
     FrameToScoreQueue.put(b'$EXIT')

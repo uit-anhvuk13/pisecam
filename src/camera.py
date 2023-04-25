@@ -23,10 +23,9 @@ def generate_frames():
     global Camera
     Ok, Frame = Camera.read()
     if Ok:
-        global FrameQueue, CurrentTime, LastScoringTime, ScoringTimeGap, Out 
+        global CurrentTime, LastScoringTime, ScoringTimeGap, Out 
         FrameQueue.put(Frame)
         if CurrentTime > LastScoringTime + ScoringTimeGap:
-            global FrameToScoreQueue
             FrameToScoreQueue.put(Frame)
             LastScoringTime = CurrentTime
         if Out != None:
@@ -45,7 +44,7 @@ def handle_human_detection():
     StopRecordTime = CurrentTime + RecordingTimeGap    
 
 def handle_no_human_detection():
-    global Out
+    global Out, CurrentTime
     if Out != None and CurrentTime > StopRecordTime:
         Out.release()
         Out = None
@@ -62,7 +61,7 @@ def message_handler(Msg):
         handle_no_human_detection()
 
 def main():
-    global Camera, CameraCtrlQueue
+    global Camera
     Camera = cv2.VideoCapture(0)
     # Set the resolution to 1080p
     Camera.set(cv2.CAP_PROP_FRAME_WIDTH, constants.FRAME_WIDTH)
@@ -82,5 +81,4 @@ def main():
         message_handler(b'$GEN_FRAME')
 
 def terminate():
-    global CameraCtrlQueue
     CameraCtrlQueue.put(b'$EXIT')
