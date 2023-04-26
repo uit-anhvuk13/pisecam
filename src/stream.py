@@ -15,10 +15,6 @@ App = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@App.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(App.root_path, 'templates'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 @App.route('/video_feed')
 def video_feed():
     return Response(get_frame_from_queue(), mimetype='multipart/x-mixed-replace; boundary=frame')
