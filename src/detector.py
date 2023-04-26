@@ -8,6 +8,7 @@ from shared_vars import CameraCtrlQueue, FrameToScoreQueue, absolute_equal
 
 Timeout = constants.TIMEOUT + constants.SEC_GAP_BETWEEN_SCORING
 Hog = None
+IsPrevFrameHumanDetected = False
 
 def detect_human(Frame):
     global Hog
@@ -16,10 +17,15 @@ def detect_human(Frame):
     Gray = cv2.cvtColor(ResizedFrame, cv2.COLOR_BGR2GRAY)
     # detect human using HOG
     Rects, _ = Hog.detectMultiScale(Gray, winStride = (8, 8), padding = (32, 32), scale=1.05)
+    global IsPrevFrameHumanDetected
     if len(Rects) > 0:
-        CameraCtrlQueue.put(b'$HUMAN_DETECTED')
+        if not IsPrevFrameHumanDetected:
+            CameraCtrlQueue.put(b'$HUMAN_DETECTED')
+            IsPrevFrameHumanDetected = True
     else:
-        CameraCtrlQueue.put(b'$HUMAN_UNDETECTED')
+        if IsPrevFrameHumanDetected:
+            CameraCtrlQueue.put(b'$HUMAN_UNDETECTED')
+            IsPrevFrameHumanDetected = False
 
 def main():
     global Hog, Timeout
