@@ -7,7 +7,7 @@ Now = datetime.now
 
 # import local files
 import constants
-from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue
+from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue, HasDetection
 
 # global vars
 Camera = None
@@ -53,12 +53,14 @@ def handle_no_human_detection():
 def message_handler(Msg):
     global CurrentTime
     CurrentTime = Now()
+    IsDetected = HasDetection.is_set()
+    if IsDetected:
+        handle_human_detection()
+    else:
+        handle_no_human_detection()
+    
     if Msg == b'$GEN_FRAME':
         generate_frames()
-    elif Msg == b'$HUMAN_DETECTED':
-        handle_human_detection()
-    elif Msg == b'$HUMAN_UNDETECTED':
-        handle_no_human_detection()
 
 def main():
     global Camera

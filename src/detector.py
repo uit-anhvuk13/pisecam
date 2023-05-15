@@ -4,7 +4,7 @@ import time
 
 # import local files
 import constants
-from shared_vars import CameraCtrlQueue, FrameToScoreQueue, absolute_equal
+from shared_vars import FrameToScoreQueue, HasDetection, absolute_equal
 
 Timeout = constants.TIMEOUT + constants.SEC_GAP_BETWEEN_SCORING
 Hog = None
@@ -20,11 +20,11 @@ def detect_human(Frame):
     global IsPrevFrameHumanDetected
     if len(Rects) > 0:
         if not IsPrevFrameHumanDetected:
-            CameraCtrlQueue.put(b'$HUMAN_DETECTED')
+            HasDetection.set()
             IsPrevFrameHumanDetected = True
     else:
         if IsPrevFrameHumanDetected:
-            CameraCtrlQueue.put(b'$HUMAN_UNDETECTED')
+            HasDetection.clear()
             IsPrevFrameHumanDetected = False
 
 def main():
