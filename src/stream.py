@@ -8,6 +8,7 @@ import cv2
 # import local files
 import constants
 from shared_vars import FrameQueue
+import firebase
 
 App = Flask(__name__)
 
@@ -18,6 +19,15 @@ def index():
 @App.route('/video_feed')
 def video_feed():
     return Response(get_frame_from_queue(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@App.route('/videos/')
+def folders():
+    return render_template('file_manager.html', type = constants.TYPE_FOLDER, data = firebase.get_subfolders('videos/'))
+
+@App.route('/videos/<name>')
+def videos(name):
+    print("videos/"+name)
+    return render_template('file_manager.html', type = constants.TYPE_VIDEOS, data = firebase.get_files('videos/' + name))
 
 def get_frame_from_queue():
     Frame = b'0'

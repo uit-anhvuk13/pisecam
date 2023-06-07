@@ -8,12 +8,14 @@ Now = datetime.now
 # import local files
 import constants
 from shared_vars import CameraCtrlQueue, FrameToScoreQueue, FrameQueue, HasDetection
+import firebase
 
 # global vars
 Camera = None
 RecordPath = os.path.join(os.getcwd(), constants.RECORD_DIR)
 Out = None
 StopRecordTime = None
+Filepath = None
 
 ScoringTimeGap = timedelta(seconds = constants.SEC_GAP_BETWEEN_SCORING)
 RecordingTimeGap = timedelta(seconds = constants.SEC_TO_END_RECORD_WHEN_NO_DETECTION)
@@ -35,20 +37,32 @@ def generate_frames():
 def handle_human_detection():
     global Out, StopRecordTime, RecordingTimeGap
     if Out == None:
-        global CurrentTime, RecordPath
+        global CurrentTime, RecordPath, Filepath
         Filename = CurrentTime.strftime('%Y-%m-%d_%H-%M-%S')
-        Filepath = f'{os.path.join(RecordPath, Filename)}.avi'
-        Fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        Filepath = f'{os.path.join(RecordPath, Filename)}.webm' # sử dụng webm vì webm có thể play trên html
+        Fourcc = cv2.VideoWriter_fourcc(*'VP90')
         Out = cv2.VideoWriter(Filepath, Fourcc, 20.0, (constants.FRAME_WIDTH, constants.FRAME_HEIGHT))
         print(f'camera_thread: writing to {Filepath}')
+
+    print("Detect")
     StopRecordTime = CurrentTime + RecordingTimeGap    
 
 def handle_no_human_detection():
-    global Out, CurrentTime
+    global Out, CurrentTime, Filepath
     if Out != None and CurrentTime > StopRecordTime:
         Out.release()
         Out = None
         print(f'camera_thread: {CurrentTime} video recorded')
+
+        # convert mp4 v1 -> mpv v2 -> do broswer chỉ có thể  play file mp4 v2
+        # Filepath_mp4v2 = Filepath.split('.mp4')[0] + '_mp4v2.mp4'
+        # os.system("ffmpeg -i {0} -c copy -map 0 -brand mp42 {1}".format(Filepath, Filepath_mp4v2))
+        # firebase.push_file(Filepath_mp4v2, constants.TYPE_VIDEOS)
+        # os.system("rm {0}".format(Filepath_mp4v2))
+        firebase.push_file(Filepath, constants.TYPE_VIDEOS)
+        
+    
+    print("Not detect")
 
 def message_handler(Msg):
     global CurrentTime
