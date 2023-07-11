@@ -22,10 +22,6 @@ if __name__ == '__main__':
     camera_thread.setDaemon(True)
     detector_thread.setDaemon(True)
     stream_thread.setDaemon(True)
-    # ensure records dir exists
-    Path = os.path.join(os.getcwd(), constants.RECORD_DIR)
-    if not os.path.exists(Path):
-        os.makedirs(Path)
     # start the thread
     camera_thread.start()
     detector_thread.start()

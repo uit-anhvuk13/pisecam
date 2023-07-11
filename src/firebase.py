@@ -1,54 +1,29 @@
-import pyrebase
 import constants
-from datetime import datetime
-
+import os
+import pyrebase
 from pprint import pprint
 
+Firebase = pyrebase.initialize_app(constants.FIREBASE_CONFIG)
+Storage = Firebase.storage()
+Database = Firebase.database()
 
-firebase = pyrebase.initialize_app(constants.firebaseConfig)
-storage = firebase.storage()
-db = firebase.database()
-def push_file(local_path, type):
-  current_date = datetime.today().strftime("%d-%m-%Y")
-  
-  filename = local_path.split("/")[-1]
-  
-  storage.child(type + "/" + current_date + "/" + filename).put(local_path)
+def push_file(File):
+    Dir = f'{constants.TYPE_VIDEO}/{File.split("_")[0]}'
+    Filename = File.split("_")[-1]
+    Storage.child(f'{Dir}/{Filename}').put(File)
+    os.system("rm {0}".format(File))
 
-  print("public: " +storage.child(type+filename).get_url(token=None))
+def get_files(FirebaseFolder):
+    Files = Storage.bucket.list_blobs(prefix = FirebaseFolder)
+    Result = []
+    for File in Files:
+        File.make_public()
+        Result.append({"name": File.name.split('/')[-1], "public_url": File.public_url})
+    return Result
 
-
-def get_files(firebase_folder):
-  files = storage.bucket.list_blobs(prefix=firebase_folder)
-
-  # print file names
-  result = []
-  for file in files:
-    
-    file.make_public()
-    # print(dir(file))
-
-    arr = file.name.split('/') # {current, sub_name, ''}
-    if(len(arr) == 3 and arr[2] != ''):
-      result.append({"name":arr[-1], "public_url": file.public_url})
-
-  return result
-
-def get_subfolders(firebase_folder):
-  files = storage.bucket.list_blobs(prefix=firebase_folder)
-
-  # print file names
-  subfolders = []
-  for file in files:
-    # print(file)
-    arr = file.name.split('/') # {current, sub_name, ''}a=
-    subfolders.append(arr[1])
-
-  return list(set(subfolders))
-
-# push_file("/home/dinhnhi/Downloads/videoplayback2.mp4", constants.TYPE_VIDEO)
-
-
-# result = get_files("videos/Ngay1")
-# print(result)
-# result = get_subfolders('videos/')
+def get_subfolders(FirebaseFolder):
+    Items = Storage.bucket.list_blobs(prefix = FirebaseFolder)
+    SubFolders = []
+    for Item in Items:
+        SubFolders.append(Item.name.split('/')[1])
+    return list(set(SubFolders))

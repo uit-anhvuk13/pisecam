@@ -14,6 +14,7 @@ App = Flask(__name__)
 
 @App.route('/')
 def index():
+    FrameQueue.queue.clear()
     return render_template('index.html')
 
 @App.route('/video_feed')
@@ -22,15 +23,13 @@ def video_feed():
 
 @App.route('/videos/')
 def folders():
-    return render_template('file_manager.html', type = constants.TYPE_FOLDER, data = firebase.get_subfolders('videos/'))
+    return render_template('file_manager.html', type = constants.TYPE_FOLDER, data = firebase.get_subfolders(f'{constants.TYPE_VIDEO}/'))
 
 @App.route('/videos/<name>')
 def videos(name):
-    print("videos/"+name)
-    return render_template('file_manager.html', type = constants.TYPE_VIDEOS, data = firebase.get_files('videos/' + name))
+    return render_template('file_manager.html', type = constants.TYPE_VIDEO, data = firebase.get_files(f'videos/{name}'))
 
 def get_frame_from_queue():
-    Frame = b'0'
     while True:
         try:
             Frame = FrameQueue.get(timeout = constants.TIMEOUT)
@@ -38,8 +37,7 @@ def get_frame_from_queue():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
         except:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + Frame + b'\r\n')
+            pass
 
 def main():
     global App
