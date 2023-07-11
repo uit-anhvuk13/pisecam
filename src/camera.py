@@ -52,7 +52,7 @@ def handle_no_human_detection():
         Out.release()
         Out = None
         print(f'camera_thread: {CurrentTime} video recorded')
-        firebase.push_file(FileNname, constants.TYPE_VIDEO)
+        firebase.push_file(Filename, constants.TYPE_VIDEO)
 
 def message_handler(Msg):
     global CurrentTime
